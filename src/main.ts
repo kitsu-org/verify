@@ -228,8 +228,51 @@ export class AgeVerificationSystem {
             case MessageTypes.StripeDone:
                 await this.handleStripeDone(ws);
                 break;
+            case MessageTypes.Identify:
+                await this.handleIdentify(ws, msg.data);
         }
     }
+
+    /**
+     * Handles identify requests
+     * @param ws - The WebSocket connection
+     */
+    private async handleIdentify(ws: WebSocketType, data: {
+        userId: string;
+    }): Promise<void> {
+        // Flow:
+        // -> {type: "identify", data: {"id": <misskeyID>}}
+        // <- {type: "identification" data: {"username": <string>, banType: <enum("conditional" | "permanent" | "none")>}}
+        const user = await this.getUserInfo(data.userId);
+
+        if (user.moderationNote?.includes("ADM-ID/minor")) {
+            this.sendMessage(ws, {
+                type: MessageTypes.Identification,
+                data: {
+                    username: user.username,
+                    banType: "conditional",
+                },
+            });
+        } else if (user.moderationNote?.includes("ADM-ID/perm")) {
+            this.sendMessage(ws, {
+                type: MessageTypes.Identification,
+                data: {
+                    username: user.username,
+                    banType: "permanent",
+                },
+            });
+        } else {
+            // This should be the default response. ADM-Verified should be for the admins, not for the system - so that we don't mistakenly ban that user again.
+            this.sendMessage(ws, {
+                type: MessageTypes.Identification,
+                data: {
+                    username: user.username,
+                    banType: "none",
+                },
+            });
+        }
+    }
+
 
     /**
      * Handles verify requests

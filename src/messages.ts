@@ -7,11 +7,32 @@ export enum MessageTypes {
     VerificationFailed = "verificationFailed",
     VerificationIncomplete = "verificationIncomplete",
     VerificationComplete = "verificationComplete",
+    Identify = "identify",
+    Identification = "identification",
 }
 
 export interface MessageStructure {
     type: MessageTypes;
     data?: unknown;
+}
+
+
+export interface IdentificationMessage extends MessageStructure {
+    type: MessageTypes.Identification;
+    data: {
+        // Conditional: The user has the change for verification
+        // Permanent: The user has lost the ability to appeal
+        // None: No record on file / already done.
+        username: string;
+        banType: "conditional" | "permanent" | "none";
+    }
+}
+
+export interface IdentifyMessage extends MessageStructure {
+    type: MessageTypes.Identify;
+    data: {
+        userId: string;
+    }
 }
 
 export interface ConnectedMessage extends MessageStructure {
@@ -58,4 +79,6 @@ export type WebSocketMessage =
     | StripeDoneMessage
     | VerificationFailedMessage
     | VerificationIncompleteMessage
-    | VerificationCompleteMessage;
+    | VerificationCompleteMessage
+    | IdentifyMessage
+    | IdentificationMessage;
