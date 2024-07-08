@@ -4,8 +4,13 @@ import { fromZodError } from "zod-validation-error";
 import { logger } from "./logging";
 
 const ConfigSchema = z.object({
+    environment: z
+        .enum(["debug","production"])
+        .default("production")
+    fqdn: z
+        .string()
     stripe: z.object({
-        secret_key: z.string(),
+        secret_key: z.string().default(""),
     }),
     misskey: z.object({
         url: z.string().url(),

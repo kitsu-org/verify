@@ -44,6 +44,12 @@ export class AgeVerificationSystem {
         const me = await this.server.request("i", {});
         logger.info`Signed in as ${me.username}`;
 
+        // Stripe key testing.
+        if (this.config.stripe.secret_key.startsWith("sk_test_") && this.config.environment !== "debug")
+            throw`You are using Stripe testing keys in production! This is not allowed. aborting...`
+        if (this.config.stripe.secret_key.startsWith("sk_live_") && this.config.environment === "debug")
+            logger.warn`You are using a live Stripe key in a debug environment! This is discouraged.`
+
         logger.info`Stripe is online`;
 
         await this.setupServer();
@@ -68,22 +74,32 @@ export class AgeVerificationSystem {
 
     /**
      * Sets up ngrok forwarding
+     * FIXME: Ngrok is only used to breach through dev environments the lazy way.
+     *        Once in prod, this should be disabled and NOT REPORTED TO STRIPE.
      */
     private async setupTunnel(): Promise<void> {
-        const tunnel = await forward({
-            addr: this.config.websockets.port,
-            authtoken: this.config.ngrok.token,
-        });
-        const url = tunnel.url();
-        logger.info`Public URL: ${chalk.gray(url)}`;
+        if (this.config.environment === "debug") {
+            if (this.config.ngrok.token === "") throw`You did not set an Ngrok token. For debug purposes, this is what we register with stripe.`
+            const tunnel = await forward({
+                addr: this.config.websockets.port,
+                authtoken: this.config.ngrok.token,
+            });
+            const url = tunnel.url();
+            logger.info`Public URL: ${chalk.gray(url)}`;
+            await this.stripe.webhookEndpoints.create({
+                enabled_events: [
+                    "identity.verification_session.verified",
+                    "identity.verification_session.requires_input",
+                ],
+                url: new URL("/callback", url ?? "").toString(),
+            });
+        } else {
+            // Do not register webhook with stripe in prod. 
+            // it'll just become super freaking messy.
+            const url = this.config.fqdn;
+            logger.info`Public URL: https://${chalk.gray(url)}` // Trying my best with the resources I have c:
+        }
 
-        await this.stripe.webhookEndpoints.create({
-            enabled_events: [
-                "identity.verification_session.verified",
-                "identity.verification_session.requires_input",
-            ],
-            url: new URL("/callback", url ?? "").toString(),
-        });
     }
 
     /**
