@@ -7,8 +7,6 @@ const ConfigSchema = z.object({
     environment: z
         .enum(["debug","production"])
         .default("production")
-    fqdn: z
-        .string()
     stripe: z.object({
         secret_key: z.string().default(""),
     }),
@@ -72,7 +70,12 @@ export class Config {
             await Bun.sleep(Number.POSITIVE_INFINITY);
             process.exit(1);
         }
-
+        // Test stripe keys for possible mistake
+        .refine(data => {
+            data.stripe.secret_key.startsWith("sk_test_") && data.environment !== "debug",
+            `Stripe testing keys are not permitted to be used in production!`
+        })
+        
         return new Config(parsed.data);
     }
 }

@@ -43,13 +43,6 @@ export class AgeVerificationSystem {
         logger.info`Booting...`;
         const me = await this.server.request("i", {});
         logger.info`Signed in as ${me.username}`;
-
-        // Stripe key testing.
-        if (this.config.stripe.secret_key.startsWith("sk_test_") && this.config.environment !== "debug")
-            throw`You are using Stripe testing keys in production! This is not allowed. aborting...`
-        if (this.config.stripe.secret_key.startsWith("sk_live_") && this.config.environment === "debug")
-            logger.warn`You are using a live Stripe key in a debug environment! This is discouraged.`
-
         logger.info`Stripe is online`;
 
         await this.setupServer();
@@ -93,13 +86,8 @@ export class AgeVerificationSystem {
                 ],
                 url: new URL("/callback", url ?? "").toString(),
             });
-        } else {
-            // Do not register webhook with stripe in prod. 
-            // it'll just become super freaking messy.
-            const url = this.config.fqdn;
-            logger.info`Public URL: https://${chalk.gray(url)}` // Trying my best with the resources I have c:
         }
-
+        // Removed this bit. Server doesn't need to know who it is in production.
     }
 
     /**
