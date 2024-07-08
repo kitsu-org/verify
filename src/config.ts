@@ -4,8 +4,11 @@ import { fromZodError } from "zod-validation-error";
 import { logger } from "./logging";
 
 const ConfigSchema = z.object({
+    environment: z
+        .enum(["debug","production"])
+        .default("production")
     stripe: z.object({
-        secret_key: z.string(),
+        secret_key: z.string().default(""),
     }),
     misskey: z.object({
         url: z.string().url(),
@@ -32,7 +35,12 @@ const ConfigSchema = z.object({
         .default({
             level: "info",
         }),
-});
+})
+        // Test stripe keys for possible mistake
+        .refine(data => {
+            data.stripe.secret_key.startsWith("sk_test_") && data.environment !== "debug",
+            `Stripe testing keys are not permitted to be used in production!`
+        });
 
 export type IConfig = z.infer<typeof ConfigSchema>;
 
@@ -67,6 +75,7 @@ export class Config {
             await Bun.sleep(Number.POSITIVE_INFINITY);
             process.exit(1);
         }
+
 
         return new Config(parsed.data);
     }

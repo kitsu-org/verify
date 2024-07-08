@@ -43,7 +43,6 @@ export class AgeVerificationSystem {
         logger.info`Booting...`;
         const me = await this.server.request("i", {});
         logger.info`Signed in as ${me.username}`;
-
         logger.info`Stripe is online`;
 
         await this.setupServer();
@@ -67,25 +66,28 @@ export class AgeVerificationSystem {
     }
 
     /**
-     * Sets up ngrok forwarding
+     * Sets up ngrok forwarding, if debug is enabled.
      */
     private async setupTunnel(): Promise<void> {
-        const tunnel = await forward({
-            addr: this.config.websockets.port,
-            authtoken: this.config.ngrok.token,
-        });
-        const url = tunnel.url();
-        logger.info`Public URL: ${chalk.gray(url)}`;
-
-        await this.stripe.webhookEndpoints.create({
-            enabled_events: [
-                "identity.verification_session.verified",
-                "identity.verification_session.requires_input",
-            ],
-            url: new URL("/callback", url ?? "").toString(),
-        });
+        if (this.config.environment === "debug") {
+            if (this.config.ngrok.token === "") throw`You did not set an Ngrok token. For debug purposes, this is what we register with stripe.`
+            const tunnel = await forward({
+                addr: this.config.websockets.port,
+                authtoken: this.config.ngrok.token,
+            });
+            const url = tunnel.url();
+            logger.info`Public URL: ${chalk.gray(url)}`;
+            await this.stripe.webhookEndpoints.create({
+                enabled_events: [
+                    "identity.verification_session.verified",
+                    "identity.verification_session.requires_input",
+                ],
+                url: new URL("/callback", url ?? "").toString(),
+            });
+    } else {
+        logger.info`Now listening on: ${chalk.gray(this.config.websockets.host)}:${this.config.websockets.port}`;
     }
-
+}
     /**
      * Handles HTTP requests
      * @param req - The incoming request
