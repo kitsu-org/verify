@@ -84,8 +84,9 @@ export class AgeVerificationSystem {
                 ],
                 url: new URL("/callback", url ?? "").toString(),
             });
-    } else logger.info`Now listening on: ${chalk.gray(this.config.websockets.host)}:${this.config.websockets.port}`
-
+    } else {
+        logger.info`Now listening on: ${chalk.gray(this.config.websockets.host)}:${this.config.websockets.port}`;
+    }
     /**
      * Handles HTTP requests
      * @param req - The incoming request
