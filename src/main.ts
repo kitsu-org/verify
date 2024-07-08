@@ -279,6 +279,7 @@ export class AgeVerificationSystem {
      * @param ws - The WebSocket connection
      */
     private async handleVerifyRequest(ws: WebSocketType): Promise<void> {
+        //FIXME: We need to handle No such user requests?
         const identity = await this.stripe.identity.verificationSessions.create(
             {
                 type: "document",
