@@ -71,7 +71,7 @@ export class AgeVerificationSystem {
     private async setupTunnel(): Promise<void> {
         if (this.config.environment === "debug") {
             if (this.config.ngrok.token === "") {
-                throw'You did not set an Ngrok token. For debug purposes, this is what we register with stripe.';
+                throw "You did not set an Ngrok token. For debug purposes, this is what we register with stripe.";
             }
             const tunnel = await forward({
                 addr: this.config.websockets.port,

@@ -22,7 +22,10 @@ await configureLoggers();
 const config = await Config.load();
 await configureLoggers(false, config.config);
 
-if (config.config.stripe.secret_key.startsWith("sk_live_") && config.config.environment === "debug") {
+if (
+    config.config.stripe.secret_key.startsWith("sk_live_") &&
+    config.config.environment === "debug"
+) {
     logger.warn`You are using a live Stripe key in a debug environment! This is discouraged.`;
 }
 

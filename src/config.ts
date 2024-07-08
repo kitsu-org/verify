@@ -3,41 +3,44 @@ import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { logger } from "./logging";
 
-const ConfigSchema = z.object({
-    environment: z
-        .enum(["debug","production"])
-        .default("production"),
-    stripe: z.object({
-        secret_key: z.string().default(""),
-    }),
-    misskey: z.object({
-        url: z.string().url(),
-        key: z.string().min(1),
-    }),
-    ngrok: z.object({
-        token: z.string(),
-    }),
-    websockets: z
-        .object({
-            port: z.number().int().min(1).max(65535).default(3000),
-            host: z.string().default("0.0.0.0"),
-        })
-        .default({
-            port: 3000,
-            host: "0.0.0.0",
+const ConfigSchema = z
+    .object({
+        environment: z.enum(["debug", "production"]).default("production"),
+        stripe: z.object({
+            secret_key: z.string().default(""),
         }),
-    logging: z
-        .object({
-            level: z
-                .enum(["debug", "info", "warning", "error", "fatal"])
-                .default("info"),
-        })
-        .default({
-            level: "info",
+        misskey: z.object({
+            url: z.string().url(),
+            key: z.string().min(1),
         }),
-}).refine(data => data.stripe.secret_key.startsWith("sk_test_") && data.environment !== "debug",
-    'Stripe testing keys are not permitted to be used in production!'
-);
+        ngrok: z.object({
+            token: z.string(),
+        }),
+        websockets: z
+            .object({
+                port: z.number().int().min(1).max(65535).default(3000),
+                host: z.string().default("0.0.0.0"),
+            })
+            .default({
+                port: 3000,
+                host: "0.0.0.0",
+            }),
+        logging: z
+            .object({
+                level: z
+                    .enum(["debug", "info", "warning", "error", "fatal"])
+                    .default("info"),
+            })
+            .default({
+                level: "info",
+            }),
+    })
+    .refine(
+        (data) =>
+            data.stripe.secret_key.startsWith("sk_test_") &&
+            data.environment === "debug",
+        "Stripe testing keys are not permitted to be used in production!",
+    );
 
 export type IConfig = z.infer<typeof ConfigSchema>;
 
@@ -72,7 +75,6 @@ export class Config {
             await Bun.sleep(Number.POSITIVE_INFINITY);
             process.exit(1);
         }
-
 
         return new Config(parsed.data);
     }
