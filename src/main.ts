@@ -56,10 +56,10 @@ export class AgeVerificationSystem {
     private setupServer(): void {
         Bun.serve<{ identity: string }>({
             port: this.config.websockets.port,
-            fetch: this.handleHttpRequest,
+            fetch: this.handleHttpRequest.bind(this),
             websocket: {
-                open: this.handleWebSocketOpen,
-                message: this.handleWebSocketMessage,
+                open: this.handleWebSocketOpen.bind(this),
+                message: this.handleWebSocketMessage.bind(this),
                 perMessageDeflate: true,
             },
         });
