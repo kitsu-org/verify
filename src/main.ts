@@ -43,6 +43,10 @@ export class AgeVerificationSystem {
         logger.info`Booting...`;
         const me = await this.server.request("i", {});
         logger.info`Signed in as ${me.username}`;
+
+        if (this.config.stripe.secret_key.startsWith("sk_live_") && this.config.environment === "debug")
+            logger.warn`You are using a live Stripe key in a debug environment! This is discouraged.`
+
         logger.info`Stripe is online`;
 
         await this.setupServer();
@@ -86,8 +90,6 @@ export class AgeVerificationSystem {
                 ],
                 url: new URL("/callback", url ?? "").toString(),
             });
-        }
-        // Removed this bit. Server doesn't need to know who it is in production.
     }
 
     /**
