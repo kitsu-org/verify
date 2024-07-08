@@ -6,7 +6,7 @@ import { logger } from "./logging";
 const ConfigSchema = z.object({
     environment: z
         .enum(["debug","production"])
-        .default("production")
+        .default("production"),
     stripe: z.object({
         secret_key: z.string().default(""),
     }),
@@ -39,8 +39,9 @@ const ConfigSchema = z.object({
         // Test stripe keys for possible mistake
         .refine(data => {
             data.stripe.secret_key.startsWith("sk_test_") && data.environment !== "debug",
+        },
             `Stripe testing keys are not permitted to be used in production!`
-        });
+        );
 
 export type IConfig = z.infer<typeof ConfigSchema>;
 
