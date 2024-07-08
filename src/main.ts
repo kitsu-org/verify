@@ -87,6 +87,7 @@ export class AgeVerificationSystem {
     } else {
         logger.info`Now listening on: ${chalk.gray(this.config.websockets.host)}:${this.config.websockets.port}`;
     }
+}
     /**
      * Handles HTTP requests
      * @param req - The incoming request
