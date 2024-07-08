@@ -7,6 +7,7 @@ import { MessageTypes } from "./messages";
 
 // Mock configuration
 const mockConfig: IConfig = {
+    environment: "debug",
     misskey: { url: "https://mockMisskey.com", key: "mockKey" },
     stripe: { secret_key: "mockStripeKey" },
     websockets: { port: 3000, host: "0.0.0.0" },

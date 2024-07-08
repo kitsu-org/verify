@@ -43,10 +43,6 @@ export class AgeVerificationSystem {
         logger.info`Booting...`;
         const me = await this.server.request("i", {});
         logger.info`Signed in as ${me.username}`;
-
-        if (this.config.stripe.secret_key.startsWith("sk_live_") && this.config.environment === "debug")
-            logger.warn`You are using a live Stripe key in a debug environment! This is discouraged.`
-
         logger.info`Stripe is online`;
 
         await this.setupServer();
@@ -70,9 +66,7 @@ export class AgeVerificationSystem {
     }
 
     /**
-     * Sets up ngrok forwarding
-     * FIXME: Ngrok is only used to breach through dev environments the lazy way.
-     *        Once in prod, this should be disabled and NOT REPORTED TO STRIPE.
+     * Sets up ngrok forwarding, if debug is enabled.
      */
     private async setupTunnel(): Promise<void> {
         if (this.config.environment === "debug") {
@@ -90,7 +84,7 @@ export class AgeVerificationSystem {
                 ],
                 url: new URL("/callback", url ?? "").toString(),
             });
-    }
+    } else logger.info`Now listening on: ${chalk.gray(this.config.websockets.host)}:${this.config.websockets.port}`
 
     /**
      * Handles HTTP requests

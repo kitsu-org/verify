@@ -35,7 +35,12 @@ const ConfigSchema = z.object({
         .default({
             level: "info",
         }),
-});
+})
+        // Test stripe keys for possible mistake
+        .refine(data => {
+            data.stripe.secret_key.startsWith("sk_test_") && data.environment !== "debug",
+            `Stripe testing keys are not permitted to be used in production!`
+        });
 
 export type IConfig = z.infer<typeof ConfigSchema>;
 
@@ -70,12 +75,8 @@ export class Config {
             await Bun.sleep(Number.POSITIVE_INFINITY);
             process.exit(1);
         }
-        // Test stripe keys for possible mistake
-        .refine(data => {
-            data.stripe.secret_key.startsWith("sk_test_") && data.environment !== "debug",
-            `Stripe testing keys are not permitted to be used in production!`
-        })
-        
+
+
         return new Config(parsed.data);
     }
 }
