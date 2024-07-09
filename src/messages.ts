@@ -9,7 +9,7 @@ export enum MessageTypes {
     VerificationComplete = "verificationComplete",
     Identify = "identify",
     Identification = "identification",
-    FailedIdentification = "failedIdentification"
+    FailedIdentification = "failedIdentification",
 }
 
 export interface MessageStructure {

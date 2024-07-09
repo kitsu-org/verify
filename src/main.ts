@@ -325,10 +325,10 @@ export class AgeVerificationSystem {
         this.sendMessage(ws, {
             type: MessageTypes.VerificationFailed,
             data: {
-                reason: "noconsent"
-            }
-        })
-    };
+                reason: "noconsent",
+            },
+        });
+    }
 
     /**
      * Handles user under age errors
@@ -336,7 +336,7 @@ export class AgeVerificationSystem {
      */
     private async handleUnsupportedAge(ws: WebSocketType): Promise<void> {
         const user = await this.getUserInfo(ws.data.identity.replace("M_", ""));
-        if (user === false) throw"Unreachable State??";
+        if (user === false) throw "Unreachable State??";
         await this.updateUserNote(user, "susp/minor\nADM-ID/Perm");
         this.sendMessage(ws, {
             type: MessageTypes.VerificationFailed,
@@ -375,7 +375,7 @@ export class AgeVerificationSystem {
         const user = await this.getUserInfo(
             session.metadata.identity.replace("M_", ""),
         );
-        if (user === false) throw"Unreachable State??";
+        if (user === false) throw "Unreachable State??";
         await this.updateUserNote(user, `ADM-ID/Verified - ${session.id}`);
         this.sendMessage(ws, {
             type: MessageTypes.VerificationComplete,
