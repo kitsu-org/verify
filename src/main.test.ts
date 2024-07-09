@@ -200,6 +200,33 @@ describe("AgeVerificationSystem", () => {
 		});
 	});
 
+	test("Error handling - Consent Declined", (done) => {
+		stripeMock.identity.verificationSessions.retrieve.mockResolvedValue({
+			last_error: { code: "consent_declined" },
+		});
+		const ws = new WebSocket(
+			`ws://localhost:${mockConfig.websockets.port}/websockets?identity=testUser`,
+		);
+		ws.on("open", () => {
+			ws.send(
+				JSON.stringify({
+					type: MessageTypes.StripeError,
+					data: { code: "consent_declined" },
+				}),
+			);
+		});
+		ws.on("message", (data) => {
+			const message = JSON.parse(data.toString());
+			if (message.type === MessageTypes.Connected) {
+				return;
+			}
+			expect(message.type).toBe(MessageTypes.VerificationFailed);
+			expect(message.data.reason).toBe("noconsent");
+			ws.close();
+			done();
+		});
+	});
+
 	test("Error handling - Underaged User", (done) => {
 		stripeMock.identity.verificationSessions.retrieve.mockResolvedValue({
 			last_error: { code: "under_supported_age" },
