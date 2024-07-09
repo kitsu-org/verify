@@ -243,12 +243,13 @@ export class AgeVerificationSystem {
             userId: string;
         },
     ): Promise<void> {
-        // Flow:
-        // -> {type: "identify", data: {"id": <misskeyID>}}
-        // <- {type: "identification" data: {"username": <string>, banType: <enum("conditional" | "permanent" | "none")>}}
         const user = await this.getUserInfo(data.userId);
-
-        if (user.moderationNote?.includes("ADM-ID/minor")) {
+        if (user === false) {
+            this.sendMessage(ws, {
+                type: MessageTypes.FailedIdentification,
+                data: null,
+            });
+        } else if (user.moderationNote?.includes("ADM-ID/minor")) {
             this.sendMessage(ws, {
                 type: MessageTypes.Identification,
                 data: {
@@ -265,7 +266,6 @@ export class AgeVerificationSystem {
                 },
             });
         } else {
-            // This should be the default response. ADM-Verified should be for the admins, not for the system - so that we don't mistakenly ban that user again.
             this.sendMessage(ws, {
                 type: MessageTypes.Identification,
                 data: {
@@ -281,7 +281,6 @@ export class AgeVerificationSystem {
      * @param ws - The WebSocket connection
      */
     private async handleVerifyRequest(ws: WebSocketType): Promise<void> {
-        //FIXME: We need to handle No such user requests?
         const identity = await this.stripe.identity.verificationSessions.create(
             {
                 type: "document",
@@ -316,19 +315,33 @@ export class AgeVerificationSystem {
         if (errorSession.last_error?.code === "consent_declined") {
             await this.handleConsentDeclined(ws);
         }
+
+        if (errorSession.last_error?.code === "under_supported_age") {
+            await this.handleUnsupportedAge(ws);
+        }
     }
 
+    private async handleConsentDeclined(ws: WebSocketType): Promise<void> {
+        this.sendMessage(ws, {
+            type: MessageTypes.VerificationFailed,
+            data: {
+                reason: "noconsent"
+            }
+        })
+    };
+
     /**
-     * Handles consent declined errors
+     * Handles user under age errors
      * @param ws - The WebSocket connection
      */
-    private async handleConsentDeclined(ws: WebSocketType): Promise<void> {
+    private async handleUnsupportedAge(ws: WebSocketType): Promise<void> {
         const user = await this.getUserInfo(ws.data.identity.replace("M_", ""));
+        if (user === false) throw"Unreachable State??";
         await this.updateUserNote(user, "susp/minor\nADM-ID/Perm");
         this.sendMessage(ws, {
             type: MessageTypes.VerificationFailed,
             data: {
-                reason: "consent_declined",
+                reason: "underage",
             },
         });
     }
@@ -362,6 +375,7 @@ export class AgeVerificationSystem {
         const user = await this.getUserInfo(
             session.metadata.identity.replace("M_", ""),
         );
+        if (user === false) throw"Unreachable State??";
         await this.updateUserNote(user, `ADM-ID/Verified - ${session.id}`);
         this.sendMessage(ws, {
             type: MessageTypes.VerificationComplete,
@@ -375,8 +389,12 @@ export class AgeVerificationSystem {
      * Gets user information
      * @param userId - The user ID
      */
-    private async getUserInfo(userId: string): Promise<UserDetailed> {
-        return await this.server.request("users/show", { userId });
+    private async getUserInfo(userId: string): Promise<UserDetailed | false> {
+        try {
+            return await this.server.request("users/show", { userId });
+        } catch (error) {
+            return false;
+        }
     }
 
     /**

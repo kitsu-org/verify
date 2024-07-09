@@ -9,11 +9,17 @@ export enum MessageTypes {
     VerificationComplete = "verificationComplete",
     Identify = "identify",
     Identification = "identification",
+    FailedIdentification = "failedIdentification"
 }
 
 export interface MessageStructure {
     type: MessageTypes;
     data?: unknown;
+}
+
+export interface FailedIdentification extends MessageStructure {
+    type: MessageTypes.FailedIdentification;
+    data: null;
 }
 
 export interface IdentificationMessage extends MessageStructure {
@@ -80,4 +86,5 @@ export type WebSocketMessage =
     | VerificationIncompleteMessage
     | VerificationCompleteMessage
     | IdentifyMessage
-    | IdentificationMessage;
+    | IdentificationMessage
+    | FailedIdentification;
