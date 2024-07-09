@@ -16,7 +16,6 @@ export interface MessageStructure {
     data?: unknown;
 }
 
-
 export interface IdentificationMessage extends MessageStructure {
     type: MessageTypes.Identification;
     data: {
@@ -25,14 +24,14 @@ export interface IdentificationMessage extends MessageStructure {
         // None: No record on file / already done.
         username: string;
         banType: "conditional" | "permanent" | "none";
-    }
+    };
 }
 
 export interface IdentifyMessage extends MessageStructure {
     type: MessageTypes.Identify;
     data: {
         userId: string;
-    }
+    };
 }
 
 export interface ConnectedMessage extends MessageStructure {

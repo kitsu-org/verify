@@ -237,9 +237,12 @@ export class AgeVerificationSystem {
      * Handles identify requests
      * @param ws - The WebSocket connection
      */
-    private async handleIdentify(ws: WebSocketType, data: {
-        userId: string;
-    }): Promise<void> {
+    private async handleIdentify(
+        ws: WebSocketType,
+        data: {
+            userId: string;
+        },
+    ): Promise<void> {
         // Flow:
         // -> {type: "identify", data: {"id": <misskeyID>}}
         // <- {type: "identification" data: {"username": <string>, banType: <enum("conditional" | "permanent" | "none")>}}
@@ -272,7 +275,6 @@ export class AgeVerificationSystem {
             });
         }
     }
-
 
     /**
      * Handles verify requests
