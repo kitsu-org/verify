@@ -306,26 +306,9 @@ export class AgeVerificationSystem {
                 this.accountsOpen[ws.data.identity].stripe?.id ?? "",
             );
 
-        if (data.code === "session_cancelled") {
-            return;
-        }
-
-        if (errorSession.last_error?.code === "consent_declined") {
-            await this.handleConsentDeclined(ws);
-        }
-
         if (errorSession.last_error?.code === "under_supported_age") {
             await this.handleUnsupportedAge(ws);
         }
-    }
-
-    private handleConsentDeclined(ws: WebSocketType): void {
-        this.sendMessage(ws, {
-            type: MessageTypes.VerificationFailed,
-            data: {
-                reason: "noconsent",
-            },
-        });
     }
 
     /**
@@ -371,7 +354,17 @@ export class AgeVerificationSystem {
         session: Stripe.Identity.VerificationSession,
     ): Promise<void> {
         const ws = this.accountsOpen[session.metadata.identity].ws;
+        this.sendMessage(ws, {
+            type: MessageTypes.VerificationComplete,
+            data: {
+                verificationId: session.id,
+            },
+        });
         await this.stripe.identity.verificationSessions.redact(session.id);
+        this.sendMessage(ws, {
+            type: MessageTypes.VerificationCompleteStep,
+            data: "redact",
+        });
         const user = await this.getUserInfo(
             session.metadata.identity.replace("M_", ""),
         );
@@ -380,11 +373,11 @@ export class AgeVerificationSystem {
         }
         await this.updateUserNote(user, `ADM-ID/Verified - ${session.id}`);
         this.sendMessage(ws, {
-            type: MessageTypes.VerificationComplete,
-            data: {
-                verificationId: session.id,
-            },
+            type: MessageTypes.VerificationCompleteStep,
+            data: "redact",
         });
+        this.accountsOpen[session.metadata.identity].stripe = undefined;
+        ws.close();
     }
 
     /**
