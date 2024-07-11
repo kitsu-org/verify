@@ -374,7 +374,7 @@ export class AgeVerificationSystem {
         await this.updateUserNote(user, `ADM-ID/Verified - ${session.id}`);
         this.sendMessage(ws, {
             type: MessageTypes.VerificationCompleteStep,
-            data: "redact",
+            data: "unban",
         });
         this.accountsOpen[session.metadata.identity].stripe = undefined;
         ws.close();
