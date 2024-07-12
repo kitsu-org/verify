@@ -316,7 +316,6 @@ export class AgeVerificationSystem {
      */
     private async handleStripeError(
         ws: WebSocketType,
-        data: { code: string },
     ): Promise<void> {
         const errorSession =
             await this.stripe.identity.verificationSessions.retrieve(
@@ -389,8 +388,7 @@ export class AgeVerificationSystem {
             throw "Unreachable State??";
         }
         await this.updateUserNote(user, `ADM-ID/Verified - ${session.id}`);
-        await this.unbanUser(user)
-        //FIXME: Where's the unbanUser function?!
+        await this.unbanUser(user);
 
         this.sendMessage(ws, {
             type: MessageTypes.VerificationCompleteStep,
