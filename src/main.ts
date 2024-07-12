@@ -337,7 +337,7 @@ export class AgeVerificationSystem {
         if (user === false) {
             throw "Unreachable State??";
         }
-        await this.updateUserNote(user, "susp/minor\nADM-ID/Perm");
+        await this.updateUserNote(user, "susp/minor\nADM-ID/perm");
         this.sendMessage(ws, {
             type: MessageTypes.VerificationFailed,
             data: {
