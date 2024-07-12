@@ -150,7 +150,7 @@ export class AgeVerificationSystem {
 
         switch (info.type) {
             case "identity.verification_session.requires_input":
-                // Handle requires_input event
+                await this.handleStripeCancel(session);
                 break;
             case "identity.verification_session.verified":
                 if (session.status === "verified") {
@@ -290,6 +290,23 @@ export class AgeVerificationSystem {
             type: MessageTypes.StripeSession,
             data: identity.client_secret ?? "",
         });
+    }
+
+    private async handleStripeCancel(
+        session: Stripe.Identity.VerificationSession,
+    ): Promise<void> {
+        const ws = this.accountsOpen[session.metadata.identity].ws;
+
+        if (session.last_error?.code === "under_supported_age") {
+            await this.handleUnsupportedAge(ws);
+        } else {
+            ws.send(
+                JSON.stringify({
+                    type: MessageTypes.VerificationFailed,
+                    data: session.last_error?.code,
+                }),
+            );
+        }
     }
 
     /**
