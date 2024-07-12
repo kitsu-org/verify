@@ -314,9 +314,7 @@ export class AgeVerificationSystem {
      * @param ws - The WebSocket connection
      * @param data - The error data
      */
-    private async handleStripeError(
-        ws: WebSocketType,
-    ): Promise<void> {
+    private async handleStripeError(ws: WebSocketType): Promise<void> {
         const errorSession =
             await this.stripe.identity.verificationSessions.retrieve(
                 this.accountsOpen[ws.data.identity].stripe?.id ?? "",
