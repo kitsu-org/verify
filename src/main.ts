@@ -389,6 +389,9 @@ export class AgeVerificationSystem {
             throw "Unreachable State??";
         }
         await this.updateUserNote(user, `ADM-ID/Verified - ${session.id}`);
+        await this.unbanUser(user)
+        //FIXME: Where's the unbanUser function?!
+
         this.sendMessage(ws, {
             type: MessageTypes.VerificationCompleteStep,
             data: "unban",
@@ -423,6 +426,14 @@ export class AgeVerificationSystem {
             userId: user.id,
             text: user.moderationNote?.replace("ADM-ID/minor", newNote),
         });
+    }
+
+    private async unbanUser(
+        user: UserDetailed,
+    ): Promise<void> {
+        await this.server.request("admin/unsuspend-user", {
+            userId: user.id
+        })
     }
 
     /**
