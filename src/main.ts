@@ -428,12 +428,10 @@ export class AgeVerificationSystem {
         });
     }
 
-    private async unbanUser(
-        user: UserDetailed,
-    ): Promise<void> {
+    private async unbanUser(user: UserDetailed): Promise<void> {
         await this.server.request("admin/unsuspend-user", {
-            userId: user.id
-        })
+            userId: user.id,
+        });
     }
 
     /**
