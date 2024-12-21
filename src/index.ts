@@ -12,7 +12,8 @@ process.on("uncaughtException", (err) => {
     logger.fatal`Press Ctrl+C to exit`;
 
     // Hang until Ctrl+C is pressed
-    Bun.sleepSync(Number.POSITIVE_INFINITY);
+    // DEP. Removed the sleepSync so that the backend can crash without assistance.
+    //    Bun.sleepSync(Number.POSITIVE_INFINITY);
     process.exit(1);
 });
 
